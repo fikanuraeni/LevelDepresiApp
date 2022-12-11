@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+    <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: black;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    /* Add padding to containers */
+    .container {
+      padding: 16px;
+      background-color: #Cba4e6;
+    }
+    
+    /* Full-width input fields */
+    input[type=text], input[type=password] {
+      width: 100%;
+      padding: 15px;
+      margin: 5px 0 22px 0;
+      display: inline-block;
+      border: none;
+      background: #f1f1f1;
+    }
+    
+    input[type=text]:focus, input[type=password]:focus {
+      background-color: #ddd;
+      outline: none;
+    }
+    
+    /* Overwrite default styles of hr */
+    hr {
+      border: 1px solid #f1f1f1;
+      margin-bottom: 25px;
+    }
+    
+    /* Set a style for the submit button */
+    .registerbtn {
+      background-color: #04AA6D;
+      color: white;
+      padding: 16px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      opacity: 0.9;
+    }
+    
+    .registerbtn:hover {
+      opacity: 1;
+    }
+    
+    /* Add a blue text color to links */
+    a {
+      color: dodgerblue;
+    }
+    
+    /* Set a grey background color and center the text of the "sign in" section */
+    .signin {
+      background-color: #f1f1f1;
+      text-align: center;
+    }
+    </style>
+
+</head>
+<body>
+  <head>Judul Aplikasi</head>
+  <main>
+    <form>
+      <div class="container">
+
+      <h1>Check Your Depression Level</h1>
+      <p>Fill in accurate data</p>
+      <br>
+
+      <input type="text" id="nama" placeholder="Nama" />
+      <input type="text" id="lembab" placeholder="Kelembapan tubuh" />
+      <input type="text" id="suhu" placeholder="Suhu tubuh" />
+      <input type="text" id="langkah" placeholder="Banyak langkah kaki" />
+      <button type="submit">Submit</button>
+    </form>
+    <article>
+      <br>
+      <br>
+      <div id="info">Info: Model sedang dimuat...</div><br>
+      Hasil Tingkat Stress Kamu Adalah : <span id="hasil"></span>
+    </article>
+  </main>
+  <footer>
+    Oleh Team Capstone C22-206
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+  <script>
+    let model = null;
+    document.addEventListener("DOMContentLoaded", async function () {
+      model = await tf.loadLayersModel("dir_model/model.json");
+      document.getElementById("info").innerText = "";
+    });
+
+    const form = document.querySelector("form");
+    
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const name = document.getElementById("nama");
+      const lembab = document.getElementById("lembab").value;
+      const suhu = document.getElementById("suhu").value;
+      const langkah = document.getElementById("langkah").value;
+      const sample = tf.tensor([[parseFloat(lembab), parseFloat(suhu), parseFloat(langkah)]]);
+      // const sample = tf.tensor([[21.5, 90.5, 102]]);
+      const prediksi = await model.predict(sample).data();
+      const label = ["Rendah", "Normal", "Tinggi"];
+      const dataPrediksi = Array.from(prediksi).map((value, idx) => {
+        return {
+          class: label[idx],
+          confidence: value
+        }
+      });
+      dataPrediksi.sort((x, y) => y.confidence - x.confidence);
+      document.getElementById("hasil").innerText = dataPrediksi[0].class;
+    })
+  </script>
+</body>
+</html>
